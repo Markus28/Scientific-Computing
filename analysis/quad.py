@@ -78,11 +78,29 @@ def cube_quad_ruleNd(rule, n):
 
 
 
+
+def _golub_welsch(n):
+    i = np.arange(n)
+    b = (i+1) / np.sqrt(4*(i+1)**2 - 1)
+    J = np.diag(b, -1) + np.diag(b, 1)
+    x, ev = np.linalg.eigh(J)   #x are eigenvalues
+    w = 2 * ev[0,:]**2
+    return x, w
+
+
+def gauss(f, a, b, n):
+    x,w = _golub_welsch(n)
+    x_bar = 0.5*(a+b+(b-a)*x)
+    values = w*f(x_bar)
+    return (b-a)/2.0 * np.sum(values)
+
+
 if __name__ == "__main__":
     print("GROUND TRUTH: ",integrate.quad(lambda x: 1/(1+25*x**2), 0, 4)[0])
     print("Simpson: ", simpson(lambda x: 1/(1+25*x**2), 0, 4, 120000))
     print("TPR: ",tpr(lambda x: 1/(1+25*x**2), 0, 4, 10000))
     print("MPR: ",mpr(lambda x: 1/(1+25*x**2), 0, 4, 50000))
+    print("GAUSS: ", gauss(lambda x: 1/(1+25*x**2), 0, 4, 80))
 
     print()
 
@@ -90,6 +108,7 @@ if __name__ == "__main__":
     print("Simpson: ",simpson(lambda x: x**0.5, 0, 4, 120000))
     print("TPR: ",tpr(lambda x: x**0.5, 0, 4, 10000))
     print("MPR: ",mpr(lambda x: x**0.5, 0, 4, 50000))
+    print("GAUSS: ",gauss(lambda x: x**0.5, 0, 4, 80))
 
     print()
 
@@ -97,4 +116,5 @@ if __name__ == "__main__":
     print("Simpson: ",simpson(lambda x: np.sin(x), 0, 4, 120000))
     print("TPR: ",tpr(lambda x: np.sin(x), 0, 4, 10000))
     print("MPR: ",mpr(lambda x: np.sin(x), 0, 4, 50000))
+    print("GAUSS: ",gauss(lambda x: np.sin(x), 0, 4, 80))
 
