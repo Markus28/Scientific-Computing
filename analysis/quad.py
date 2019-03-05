@@ -88,19 +88,32 @@ def _golub_welsch(n):
     return x, w
 
 
-def gauss(f, a, b, n):
-    x,w = _golub_welsch(n)
-    x_bar = 0.5*(a+b+(b-a)*x)
-    values = w*f(x_bar)
+def gauss(f, a, b, N):
+    x,w = _golub_welsch(N)
+    x_transformed = 0.5*(a+b+(b-a)*x)
+    values = w*f(x_transformed)
     return (b-a)/2.0 * np.sum(values)
 
+
+def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
+    h = (b-a)/n
+    intervals = np.linspace(a, b, n)
+    x,w = _golub_welsch(N)
+    x_transformed = 0.5*(2*a+h+h*x)
+    result = 0
+    
+    for i in range(n):
+        result += h/2.0*np.sum(w*f(x_transformed))
+        x_transformed += h
+    
+    return result
 
 if __name__ == "__main__":
     print("GROUND TRUTH: ",integrate.quad(lambda x: 1/(1+25*x**2), 0, 4)[0])
     print("Simpson: ", simpson(lambda x: 1/(1+25*x**2), 0, 4, 120000))
     print("TPR: ",tpr(lambda x: 1/(1+25*x**2), 0, 4, 10000))
     print("MPR: ",mpr(lambda x: 1/(1+25*x**2), 0, 4, 50000))
-    print("GAUSS: ", gauss(lambda x: 1/(1+25*x**2), 0, 4, 80))
+    print("GAUSS: ", composite_gauss(lambda x: 1/(1+25*x**2), 0, 4, 100, 80))
 
     print()
 
@@ -108,7 +121,7 @@ if __name__ == "__main__":
     print("Simpson: ",simpson(lambda x: x**0.5, 0, 4, 120000))
     print("TPR: ",tpr(lambda x: x**0.5, 0, 4, 10000))
     print("MPR: ",mpr(lambda x: x**0.5, 0, 4, 50000))
-    print("GAUSS: ",gauss(lambda x: x**0.5, 0, 4, 80))
+    print("GAUSS: ",composite_gauss(lambda x: x**0.5, 0, 4, 100, 80))
 
     print()
 
@@ -116,5 +129,5 @@ if __name__ == "__main__":
     print("Simpson: ",simpson(lambda x: np.sin(x), 0, 4, 120000))
     print("TPR: ",tpr(lambda x: np.sin(x), 0, 4, 10000))
     print("MPR: ",mpr(lambda x: np.sin(x), 0, 4, 50000))
-    print("GAUSS: ",gauss(lambda x: np.sin(x), 0, 4, 80))
+    print("GAUSS: ",composite_gauss(lambda x: np.sin(x), 0, 4, 100, 80))
 
