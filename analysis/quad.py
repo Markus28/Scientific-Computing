@@ -1,4 +1,6 @@
 import numpy as np
+import timeit
+import time
 from scipy import integrate
 
 def mpr(f, a, b, N):
@@ -21,6 +23,25 @@ def simpson(f, a, b, N):
     b = 2*(h/6)*(fx[0]+fx[-1])
     c = 8*(h/6)*np.sum(fx[1::2])
     return a+b+c
+
+
+def adaptive_h(f, a, b, tol=0.00000001):                                 #Usually not efficient because of recursion. TODO: Implement in Cython
+    return _adaptive_h(f,a,b,f(a),f(b), f((a+b)/2), (b-a)/6*(f(a)+4*f((a+b)/2) +f(b)),tol)
+
+
+def _adaptive_h(f, a, b, fa, fb, fm, sab, tol):
+    h = (b-a)/2
+    fm_new1 = f(a+h/2)
+    fm_new2 = f(b-h/2)
+    sam = h/6*(fa+4*fm_new1+fm)
+    smb = h/6*(fm+4*fm_new2+fb)
+
+    err = np.abs(sam+smb-sab)
+    
+    if(err>15*tol):
+        return _adaptive_h(f,a,a+h,fa,fm,fm_new1,sam,tol/2)+_adaptive_h(f,a+h,b,fm,fb,fm_new2,smb,tol/2)
+
+    return sam+smb
 
 
 def sliced(f, y):
@@ -108,26 +129,45 @@ def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
     
     return result
 
+def test(f, exact_val, name):
+    result = f()
+    t = timeit.timeit(f, number = 30)
+    print(name, ":", result, ", ERROR: ", np.abs(exact_val-result), ", TOOK:", t, "seconds")
+
+def test_batch(f, exact):
+    test(lambda: simpson(f, 0, 4, 12000),exact,"Simpson")
+    test(lambda: adaptive_h(f, 0, 4),exact,"Adaptive")
+    test(lambda: gauss(f, 0, 4, 80),exact,"Gauss")
+    test(lambda: tpr(f, 0, 4, 120000),exact,"TPR")
+    test(lambda: mpr(f, 0, 4, 120000),exact,"MPR")
+    print()
+
+
+def expensive(x):
+    if(x<2.3234):
+        return 0.0
+    else:
+        return x-2.3234
+
+    
 if __name__ == "__main__":
-    print("GROUND TRUTH: ",integrate.quad(lambda x: 1/(1+25*x**2), 0, 4)[0])
-    print("Simpson: ", simpson(lambda x: 1/(1+25*x**2), 0, 4, 120000))
-    print("TPR: ",tpr(lambda x: 1/(1+25*x**2), 0, 4, 10000))
-    print("MPR: ",mpr(lambda x: 1/(1+25*x**2), 0, 4, 50000))
-    print("GAUSS: ", composite_gauss(lambda x: 1/(1+25*x**2), 0, 4, 100, 80))
+    f = lambda x: 1/(1+25*x**2)
+    exact = integrate.quad(f, 0, 4)[0]
 
-    print()
+    test_batch(f, exact)
 
-    print("GROUND TRUTH: ",integrate.quad(lambda x: x**0.5, 0, 4)[0])
-    print("Simpson: ",simpson(lambda x: x**0.5, 0, 4, 120000))
-    print("TPR: ",tpr(lambda x: x**0.5, 0, 4, 10000))
-    print("MPR: ",mpr(lambda x: x**0.5, 0, 4, 50000))
-    print("GAUSS: ",composite_gauss(lambda x: x**0.5, 0, 4, 100, 80))
+    f = lambda x: x**0.5
+    exact = integrate.quad(f, 0, 4)[0]
 
-    print()
+    test_batch(f, exact)
 
-    print("GROUND TRUTH: ",integrate.quad(lambda x: np.sin(x), 0, 4)[0])
-    print("Simpson: ",simpson(lambda x: np.sin(x), 0, 4, 120000))
-    print("TPR: ",tpr(lambda x: np.sin(x), 0, 4, 10000))
-    print("MPR: ",mpr(lambda x: np.sin(x), 0, 4, 50000))
-    print("GAUSS: ",composite_gauss(lambda x: np.sin(x), 0, 4, 100, 80))
+    f = lambda x: np.sin(x)
+    exact = integrate.quad(f, 0, 4)[0]
+
+    test_batch(f, exact)
+
+    
+    exact = integrate.quad(np.vectorize(expensive), 0, 4)[0]
+
+    test_batch(np.vectorize(expensive), exact)
 
