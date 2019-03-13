@@ -3,6 +3,36 @@ import timeit
 import time
 from scipy import integrate
 
+def _golub_welsch(n):
+    i = np.arange(n)
+    b = (i+1) / np.sqrt(4*(i+1)**2 - 1)
+    J = np.diag(b, -1) + np.diag(b, 1)
+    x, ev = np.linalg.eigh(J)   #x are eigenvalues
+    w = 2 * ev[0,:]**2
+    return x, w
+
+
+def gauss(f, a, b, N):
+    x,w = _golub_welsch(N)
+    x_transformed = 0.5*(a+b+(b-a)*x)
+    values = w*f(x_transformed)
+    return (b-a)/2.0 * np.sum(values)
+
+
+def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
+    h = (b-a)/n
+    intervals = np.linspace(a, b, n)
+    x,w = _golub_welsch(N)
+    x_transformed = 0.5*(2*a+h+h*x)
+    result = 0
+    
+    for i in range(n):
+        result += h/2.0*np.sum(w*f(x_transformed))
+        x_transformed += h
+    
+    return result
+
+
 def mpr(f, a, b, N):
     h = float(b-a)/N
     x = np.linspace(a+h, b-h, N)
@@ -100,34 +130,8 @@ def cube_quad_ruleNd(rule, n):
 
 
 
-def _golub_welsch(n):
-    i = np.arange(n)
-    b = (i+1) / np.sqrt(4*(i+1)**2 - 1)
-    J = np.diag(b, -1) + np.diag(b, 1)
-    x, ev = np.linalg.eigh(J)   #x are eigenvalues
-    w = 2 * ev[0,:]**2
-    return x, w
 
 
-def gauss(f, a, b, N):
-    x,w = _golub_welsch(N)
-    x_transformed = 0.5*(a+b+(b-a)*x)
-    values = w*f(x_transformed)
-    return (b-a)/2.0 * np.sum(values)
-
-
-def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
-    h = (b-a)/n
-    intervals = np.linspace(a, b, n)
-    x,w = _golub_welsch(N)
-    x_transformed = 0.5*(2*a+h+h*x)
-    result = 0
-    
-    for i in range(n):
-        result += h/2.0*np.sum(w*f(x_transformed))
-        x_transformed += h
-    
-    return result
 
 def test(f, exact_val, name):
     result = f()
@@ -146,8 +150,7 @@ def test_batch(f, exact):
 def expensive(x):
     if(x<2.3234):
         return 0.0
-    else:
-        return x-2.3234
+    return x-2.3234
 
     
 if __name__ == "__main__":
