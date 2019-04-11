@@ -35,7 +35,7 @@ def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
 
 def mpr(f, a, b, N):
     h = float(b-a)/N
-    x = np.linspace(a+h, b-h, N)
+    x = np.linspace(a+h/2, b-h/2, N)
     ft = h*f(x)
     return np.sum(ft)
 
