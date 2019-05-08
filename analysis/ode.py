@@ -18,12 +18,6 @@ def true_lower_triangle(matrix):              #TODO: Test
 
     return True
 
-def runge_kutta(butcher, c, b):                 #TODO: Test
-    if true_lower_triangular(butcher):
-        return explicit_rk(butcher, c, b)
-
-    return implicit_rk(butcher, c, b)
-
 
 def explicit_rk(butcher, c, b):
     assert(true_lower_triangle(butcher))
@@ -66,6 +60,9 @@ def implicit_rk(butcher, c, b):                             #TODO: Test
 
 
 def runge_kutta(butcher, c, b):
+    for i in range(butcher.shape[0]):
+        assert(np.abs(np.sum(butcher[i,:])-c[i])<0.0000001)
+        
     if true_lower_triangle(butcher):
         return explicit_rk(butcher, c, b)
 
