@@ -34,6 +34,7 @@ def row_3_step(rhs, Jy, yi, h):
 
 def row23(rhs, Jy, y0, T, abstol = 10**-8, h0 = None):
     tol = abstol/T
+    
     if h0!=None:
         h = h0
     else:
