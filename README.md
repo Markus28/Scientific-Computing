@@ -14,6 +14,7 @@
         - Velocity verlet
         - Arbitrary Rungekutta methods
         - Splitting methods
+	- Rosebrock-Wanner 23 adaptive method
     - Solving Equations
         - Secant
         - Newton

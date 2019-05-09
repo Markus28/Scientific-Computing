@@ -9,6 +9,61 @@ l = 1
 m=1
 w = (gr/l)**0.5
 
+def row_2_step(rhs, Jy, yi, h):
+    J  = Jy(yi)
+    a = 1/(2+np.sqrt(2))
+    B = np.eye(J.shape[0])-a*h*J
+
+    k1 = np.linalg.solve(B, rhs(yi))
+    k2 = np.linalg.solve(B, rhs(yi + 0.5*h*k1)-a*h*np.matmul(J,k1))
+
+    return yi + h*k2
+
+
+def row_3_step(rhs, Jy, yi, h):
+    J  = Jy(yi)
+    a = 1/(2+np.sqrt(2))
+    B = np.eye(J.shape[0])-a*h*J
+
+    k1 = np.linalg.solve(B, rhs(yi))
+    k2 = np.linalg.solve(B, rhs(yi + 0.5*h*k1)-a*h*np.matmul(J,k1))
+    k3 = np.linalg.solve(B, rhs(yi+h*k2) + (4+np.sqrt(2))/(2+np.sqrt(2))*h*np.matmul(J, k1)-(6+np.sqrt(2))/(2+np.sqrt(2))*h*np.matmul(J, k2))
+
+    return yi + h/6.0*(k1 + 4*k2 +k3)
+
+
+def row23(rhs, Jy, y0, T, abstol = 10**-8, h0 = None):
+    tol = abstol/T
+    if h0!=None:
+        h = h0
+    else:
+        h = T/(1000*(np.linalg.norm(rhs(y0))+0.1))
+        
+    ts = [0]                #Use linked lists to make appending efficient
+    ys = [y0]
+    t_current = 0
+    y_current = y0
+    
+    while t_current<T:
+        r2 = row_2_step(rhs, Jy, y_current, h)
+        r3 = row_3_step(rhs, Jy, y_current, h)
+        
+        y_current = r3
+        
+        t_current += h
+        
+        ts.append(t_current)
+        ys.append(y_current)
+        
+        if np.linalg.norm(r3-r2)/h>tol:
+            h/=2
+        else:
+            h*=1.1
+
+    return np.array(ts), np.array(ys)
+    
+    
+    
 def true_lower_triangle(matrix):              #TODO: Test
     h, l = matrix.shape
     for i in range(h):
