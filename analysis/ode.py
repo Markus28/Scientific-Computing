@@ -39,6 +39,7 @@ def row23(rhs, Jy, y0, T, abstol = 10**-8, h0 = None):
         h = h0
     else:
         h = T/(1000*(np.linalg.norm(rhs(y0))+0.1))
+            
         
     ts = [0]                #Use linked lists to make appending efficient
     ys = [y0]
