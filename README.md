@@ -28,3 +28,4 @@
         - Givens
         - Gram-Schmidt
         - Modified Gram-Schmidt
+    - Cholesky-Decomposition

@@ -1,6 +1,24 @@
 import numpy as np
 
 
+def symmetric_gauss(A):
+    if(A.size == 1):
+        return np.array([1]), A.copy()
+    
+    U = np.eye(A.shape[0])
+    U[0, 1:] = -A[0, 1:]/A[0,0]
+    U_next = np.eye(A.shape[0])
+    A_new = np.matmul(U.T, np.matmul(A, U))
+    U_next[1:, 1:], A_new[1:, 1:] = symmetric_gauss(A_new[1:, 1:])
+    return np.matmul(U, U_next), A_new.diagonal()
+
+
+def cholesky(A):
+    U, D = symmetric_gauss(A)
+    E = np.diag(np.sqrt(D))
+    return solve_triangular(U.T, E, lower=True).T
+
+
 def factor_QR(A):
     if A.size == 1:                     #Base case
         return A/np.linalg.norm(A), np.linalg.norm(A)
@@ -99,8 +117,8 @@ def modified_gram_schmidt(A):
 
 
 if __name__=="__main__":
-    #Q, R = factor_QR(np.array([[1.0,2.0, -4, 1], [3.0, 4.0,234.4, -3], [2,1,2,0.0004], [0,0,2,0]]))
-    Q, R = factor_QR(np.array([[1, -2], [1, 0], [1, 1], [1, 3]]).T)
+    Q, R = rotation_QR(np.array([[1.0,2.0, -4, 1], [3.0, 4.0,234.4, -3], [2,1,2,0.0004], [0,0,2,0]]))
+    #Q, R = factor_QR(np.array([[1, -2], [1, 0], [1, 1], [1, 3]]).T)
     print(np.matmul(Q, Q.T))
     print()
     print(R)
