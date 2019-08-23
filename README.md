@@ -34,3 +34,8 @@
     - Eingenvalue/vector calculation
         - QR-Iteration
         - Power methods
+    - Least Squares
+        - Linear via QR, SVD or normal form
+        - Total linear lstsq via SVD
+        - Newton
+        - Gauss-Newton
