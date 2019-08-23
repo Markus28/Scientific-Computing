@@ -15,6 +15,8 @@
         - Arbitrary Rungekutta methods
         - Splitting methods
         - Rosebrock-Wanner 23 adaptive method
+        - Exponential euler
+        - Krylov-Subspace solver for linear ODEs
     - Solving Equations
         - Secant
         - Newton
@@ -29,3 +31,6 @@
         - Gram-Schmidt
         - Modified Gram-Schmidt
     - Cholesky-Decomposition
+    - Eingenvalue/vector calculation
+        - QR-Iteration
+        - Power methods

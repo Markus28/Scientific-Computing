@@ -2,12 +2,52 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 import numpy as np
 import timeit
-
+from scipy.linalg import expm
 
 gr = 9.81
 l = 1
 m=1
 w = (gr/l)**0.5
+
+
+def arnoldi(A, v0, k):
+    v = v0/np.linalg.norm(v0)
+    V = np.zeros((v0.size, k+1))
+    V[:, 0] = v
+    v_bar = v
+    H = np.zeros((k+1, k))
+
+    for l in range(k):
+        v_bar = np.matmul(A, V[:, l])
+        for i in range(l+1):
+            h = np.dot(V[:, i], v_bar)
+            v_bar -= h*V[:, i]
+            H[i, l] = h
+        h = np.linalg.norm(v_bar)
+        H[l+1, l] = h
+        V[:, l+1] = v_bar/h
+    return H,V
+
+def exp_roe(rhs, J, y0, T, n):
+    h = T/n
+    result = np.zeros((n+1, *y0.shape))
+    result[0] = y0
+    y = y0.copy()
+    for i in range(n):
+        DF = J(y)
+        y += np.dot(expm(h*DF)-np.eye(*DF.shape), np.linalg.solve(DF, rhs(y)))
+        result[i+1] = y
+    return result
+
+def linear_krylov(A, y0, T, N, k):
+    h = T/(N-1)
+    result = np.zeros((N, *y0.shape))
+    result[0] = y0
+    for i in range(1, N):
+        H, V = arnoldi(A, result[i-1], k)
+        result[i] = np.linalg.norm(result[i-1])*np.matmul(V[:,:-1], expm(h*H[:-1]))[:,0]
+    return result
+
 
 def row_2_step(rhs, Jy, yi, h):
     J  = Jy(yi)
