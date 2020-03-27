@@ -3,12 +3,7 @@ from scipy.optimize import fsolve
 import numpy as np
 import timeit
 from scipy.linalg import expm
-
-gr = 9.81
-l = 1
-m=1
-w = (gr/l)**0.5
-
+import sympy as sp
 
 def arnoldi(A, v0, k):
     v = v0/np.linalg.norm(v0)
@@ -365,17 +360,62 @@ def velocity_verlet(f, y0, v0, T, N):
     return y,v
 
 
-def f(x, t):
-    return np.array([x[1], -w**2*np.sin(x[0])])
 
-def g(x, t):
-    return -w**2*np.sin(x)
 
-def energy(x):
-    return (1-np.cos(x[:,0]))*m*gr*l + 0.5*m*(x[:,1]**2)
+#########################################
+#                                       #
+#   The following functions are for     #
+#   Taylor integration in 1 Dimension   #
+#                                       #
+#########################################
 
-if __name__=="__main__":
-    result = implicit_midpoint(f, np.array([0.5, 0]), 16, 20000)
-    plt.plot(energy(result))
-    plt.plot(result[:,0])
-    plt.show()
+
+def n_taylor_derivatives(f, n):
+    derivatives = [f]
+    for _ in range(n):
+        expr = derivatives[-1].diff("t")+derivatives[-1].diff("x")*f
+        derivatives.append(expr)
+
+    return derivatives
+
+def evaluate_taylor(y0, derivatives, dt):
+    result = y0
+    for i, der in enumerate(derivatives):
+        result += np.power(dt,i+1)/np.math.factorial(i+1)*der
+
+    return result
+
+
+
+
+'''
+Solve the ODE given by dx/dt = rhs(t, x) with x: R->R 1-dimensional
+using a taylor method. The taylor expansion of x is computed symbolically.
+
+Inputs:
+    - rhs is a sympy expression in the variables "x" and "t"
+    - y0 is x(0), a scalar
+    - T is the time to which the ode should be integrated -> Solution from 0 to T
+    - N is number of steps
+    - n is the oder of the taylor method that should be used
+
+Outputs:
+    - (t, y) where t is the time grid and y the solution of the ode
+
+'''
+def taylor_integrate(rhs, y0, T, N, n=5):
+    n = n-1
+    t, h = np.linspace(0, T, N, retstep=True)
+    y = np.zeros((N))
+    y[0] = y0
+
+    symbolic_derivatives = n_taylor_derivatives(rhs, n)
+    function_derivatives = [sp.lambdify(["t", "x"], der, "numpy") for der in symbolic_derivatives]
+    evaluate_derivatives = lambda t, x: [fd(t,x) for fd in function_derivatives]
+
+    print(symbolic_derivatives)
+    
+    for k in range(1, N):
+        y[k] = evaluate_taylor(y[k-1], evaluate_derivatives(t[k-1], y[k-1]), h)
+
+    return t, y
