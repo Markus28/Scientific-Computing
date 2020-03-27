@@ -412,8 +412,6 @@ def taylor_integrate(rhs, y0, T, N, n=5):
     symbolic_derivatives = n_taylor_derivatives(rhs, n)
     function_derivatives = [sp.lambdify(["t", "x"], der, "numpy") for der in symbolic_derivatives]
     evaluate_derivatives = lambda t, x: [fd(t,x) for fd in function_derivatives]
-
-    print(symbolic_derivatives)
     
     for k in range(1, N):
         y[k] = evaluate_taylor(y[k-1], evaluate_derivatives(t[k-1], y[k-1]), h)
