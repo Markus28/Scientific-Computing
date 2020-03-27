@@ -12,7 +12,7 @@
         - Implicit midpoint
         - Implicit trapezoidal
         - Velocity verlet
-	- Taylor methods of arbitrary order
+        - Taylor methods of arbitrary order
         - Arbitrary Rungekutta methods
         - Splitting methods
         - Rosebrock-Wanner 23 adaptive method
