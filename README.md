@@ -4,7 +4,7 @@
         - Midpoint rule
         - Trapezoidal rule
         - Simpson rule
-        - Gauss Legendre
+        - Gauss Legendre, including Golub-Welsch
         - All Rules in arbitrary dimensions
     - ODEs
         - Explicit euler
@@ -14,6 +14,7 @@
         - Velocity verlet
         - Taylor methods of arbitrary order
         - Arbitrary Rungekutta methods
+        - Collocation points to Butcher tableau
         - Splitting methods
         - Rosebrock-Wanner 23 adaptive method
         - Exponential euler

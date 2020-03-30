@@ -4,6 +4,54 @@ import numpy as np
 import timeit
 from scipy.linalg import expm
 import sympy as sp
+from numpy.polynomial.polynomial import polyval, polymul, polyint
+import itertools
+
+
+'''
+Calculates the lagrange polynomials for the points ci
+Inputs:
+    - ci: List of quadrature points
+
+Outputs:
+    - The corresponding Lagrange polynomials
+'''
+def lagrange_polynomials(ci):
+    polynomials = []
+    
+    for i, c in enumerate(ci):
+        current_polynomial = [0,]*len(ci)
+        current_polynomial[0]=1
+        for j in range(len(ci)):
+            if i!=j:
+                current_polynomial = polymul(current_polynomial, [-ci[j]/(ci[i]-ci[j]), 1/(ci[i]-ci[j])])
+        polynomials.append(current_polynomial)
+
+    return polynomials
+
+'''
+Builds butcher tableau for collocation method
+Inputs:
+    - ci: List of quadrature points in [0,1], mutually distinct
+
+Outputs:
+    - A, b: Butcher tableau
+'''
+def collocation_to_butcher(ci):
+    polynomials = lagrange_polynomials(ci)
+    integrated_polynomials = [polyint(p) for p in polynomials]
+    A = np.zeros((len(ci), len(ci)))
+    for i, j in itertools.product(range(len(ci)), range(len(ci))):
+        A[i, j] = np.polynomial.polynomial.polyval(ci[i], integrated_polynomials[j])- integrated_polynomials[j][0]
+
+    b = np.zeros((len(ci)))
+    for i in range(len(ci)):
+        b[i] = polyval(1, integrated_polynomials[i]) - integrated_polynomials[i][0]
+        
+    return A, b
+
+
+
 
 def arnoldi(A, v0, k):
     v = v0/np.linalg.norm(v0)

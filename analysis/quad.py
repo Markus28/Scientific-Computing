@@ -3,7 +3,7 @@ import timeit
 import time
 from scipy import integrate
 
-def _golub_welsch(n):
+def golub_welsch(n):
     i = np.arange(n)
     b = (i+1) / np.sqrt(4*(i+1)**2 - 1)
     J = np.diag(b, -1) + np.diag(b, 1)
@@ -13,7 +13,7 @@ def _golub_welsch(n):
 
 
 def gauss(f, a, b, N):
-    x,w = _golub_welsch(N)
+    x,w = golub_welsch(N)
     x_transformed = 0.5*(a+b+(b-a)*x)
     values = w*f(x_transformed)
     return (b-a)/2.0 * np.sum(values)
@@ -22,7 +22,7 @@ def gauss(f, a, b, N):
 def composite_gauss(f, a, b, n, N):     #n number of subintervals, N degree
     h = (b-a)/n
     intervals = np.linspace(a, b, n)
-    x,w = _golub_welsch(N)
+    x,w = golub_welsch(N)
     x_transformed = 0.5*(2*a+h+h*x)
     result = 0
     
